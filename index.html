@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8">
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    >
+    <meta
+      name="description"
+      content="Outil frontend local-first pour convertir un texte et une police locale en SVG vectoriel exportable."
+    >
+    <link rel="stylesheet" href="./src/styles.css">
+    <title>Text to SVG Local</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="hero">
+        <p class="eyebrow">Font to Path Utility</p>
+        <h1>Text to SVG Local</h1>
+        <p class="hero-copy">
+          Chargez une police locale, saisissez votre texte, ajustez la typo et exportez un vrai SVG vectoriel en
+          paths, entièrement dans le navigateur.
+        </p>
+      </header>
+
+      <section class="workspace">
+        <aside class="panel controls-panel" aria-label="Contrôles">
+          <div class="panel-header">
+            <div>
+              <h2>Contrôles</h2>
+              <p>Frontend pur, sans upload distant ni backend.</p>
+            </div>
+          </div>
+
+          <div class="control-stack">
+            <section
+              id="font-dropzone"
+              class="control-card dropzone"
+              aria-label="Chargement de la police"
+            >
+              <div class="section-heading">
+                <div>
+                  <h3>Police locale</h3>
+                  <p>Formats pris en charge : `.ttf` et `.otf`.</p>
+                </div>
+                <button id="font-button" class="button button-primary" type="button">Charger une police</button>
+              </div>
+
+              <input id="font-input" type="file" accept=".ttf,.otf" hidden>
+
+              <p id="font-name" class="font-name">Aucune police chargée</p>
+              <p id="font-meta" class="helper-text">Glissez-déposez un fichier ici ou utilisez le bouton.</p>
+            </section>
+
+            <section class="control-card">
+              <div class="section-heading">
+                <div>
+                  <h3>Texte</h3>
+                  <p>Compatible mono-ligne et multi-lignes.</p>
+                </div>
+                <button id="example-button" class="button" type="button">Exemple</button>
+              </div>
+
+              <label class="sr-only" for="text-input">Texte à vectoriser</label>
+              <textarea
+                id="text-input"
+                rows="7"
+                spellcheck="false"
+                placeholder="Saisissez votre texte ici."
+              ></textarea>
+            </section>
+
+            <section class="control-card">
+              <div class="section-heading">
+                <div>
+                  <h3>Réglages typographiques</h3>
+                  <p>Les valeurs s’appliquent en direct à l’aperçu et à l’export.</p>
+                </div>
+              </div>
+
+              <div class="field-grid">
+                <label class="field">
+                  <span class="field-label">Font size</span>
+                  <input id="font-size-input" type="number" min="8" max="960" step="1" value="120">
+                </label>
+
+                <label class="field">
+                  <span class="field-label">Letter spacing</span>
+                  <input id="letter-spacing-input" type="number" min="-60" max="300" step="1" value="0">
+                </label>
+
+                <label class="field">
+                  <span class="field-label">Line height</span>
+                  <input id="line-height-input" type="number" min="0.8" max="4" step="0.05" value="1.2">
+                </label>
+
+                <label class="field">
+                  <span class="field-label">Padding SVG</span>
+                  <input id="padding-input" type="number" min="0" max="300" step="1" value="28">
+                </label>
+              </div>
+
+              <div class="align-block">
+                <span class="field-label">Alignement</span>
+                <div class="segmented" role="group" aria-label="Alignement horizontal">
+                  <button class="segment is-active" type="button" data-align="left">Gauche</button>
+                  <button class="segment" type="button" data-align="center">Centre</button>
+                  <button class="segment" type="button" data-align="right">Droite</button>
+                </div>
+              </div>
+
+              <div class="field-grid colors-grid">
+                <label class="field">
+                  <span class="field-label">Fill</span>
+                  <input id="fill-input" type="color" value="#f6f2e8">
+                </label>
+
+                <label class="field">
+                  <span class="field-label">Stroke</span>
+                  <input id="stroke-input" type="color" value="#101114">
+                </label>
+
+                <label class="checkbox-field">
+                  <input id="stroke-enabled-input" type="checkbox">
+                  <span>Activer le contour</span>
+                </label>
+
+                <label class="field">
+                  <span class="field-label">Épaisseur contour</span>
+                  <input id="stroke-width-input" type="number" min="0" max="80" step="0.5" value="1.5">
+                </label>
+              </div>
+            </section>
+
+            <section class="control-card">
+              <div class="section-heading">
+                <div>
+                  <h3>Aperçu et export</h3>
+                  <p>Le rendu principal reste un SVG vectorisé en paths.</p>
+                </div>
+              </div>
+
+              <div class="option-stack">
+                <label class="checkbox-field">
+                  <input id="preview-background-input" type="checkbox" checked>
+                  <span>Fond clair dans l’aperçu</span>
+                </label>
+
+                <label class="checkbox-field">
+                  <input id="show-bounds-input" type="checkbox">
+                  <span>Afficher les bounding boxes dans l’aperçu</span>
+                </label>
+              </div>
+
+              <div class="button-row">
+                <button id="reset-button" class="button" type="button">Reset</button>
+                <button id="export-vector-button" class="button button-primary" type="button" disabled>
+                  Export SVG paths
+                </button>
+                <button id="export-text-button" class="button" type="button" disabled>
+                  Export SVG texte
+                </button>
+              </div>
+            </section>
+
+            <section class="status-stack" aria-live="polite">
+              <div id="status-banner" class="notice notice-info">
+                Chargez une police locale `.ttf` ou `.otf` pour commencer.
+              </div>
+              <div id="warning-banner" class="notice notice-warning" hidden></div>
+            </section>
+          </div>
+        </aside>
+
+        <section class="panel preview-panel" aria-label="Aperçu SVG">
+          <div class="panel-header">
+            <div>
+              <h2>Aperçu SVG</h2>
+              <p>Le rendu est recalculé dans le navigateur à chaque modification.</p>
+            </div>
+            <p id="preview-dimensions" class="dimension-pill">SVG en attente</p>
+          </div>
+
+          <div id="preview-stage" class="preview-stage preview-stage-solid">
+            <div id="preview-target" class="preview-target"></div>
+            <div id="preview-placeholder" class="preview-placeholder">
+              <p>Chargez une police locale pour voir l’aperçu.</p>
+            </div>
+          </div>
+
+          <div class="preview-footer">
+            <p id="missing-glyphs" class="helper-text" hidden></p>
+            <p class="helper-text">
+              Le SVG exporté contient les contours réels des glyphes. Aucun serveur n’est utilisé.
+            </p>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="./vendor/opentype.js"></script>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
