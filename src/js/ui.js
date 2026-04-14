@@ -375,5 +375,4 @@ export function createApp() {
 
   bindDropzone(elements, state);
   renderApp(state, elements);
-  document.body.dataset.appReady = "true";
 }
