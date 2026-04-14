@@ -1,4 +1,4 @@
-import { ITALIC_ANGLE_DEGREES } from "./constants.js";
+import { getSlantAngleDegrees } from "./constants.js";
 import { formatNumber, getFauxBoldWidth, normalizeMultilineText, uniqueStrings } from "./utils.js";
 
 function createEmptyBounds() {
@@ -177,7 +177,8 @@ export function buildTextLayout({ font, text, settings }) {
 
   const lines = normalizedText.split("\n");
   const fontScale = settings.fontSize / font.unitsPerEm;
-  const italicSlope = settings.italic ? Math.tan((ITALIC_ANGLE_DEGREES * Math.PI) / 180) : 0;
+  const slantAngle = getSlantAngleDegrees(settings.slantStyle);
+  const italicSlope = slantAngle ? Math.tan((slantAngle * Math.PI) / 180) : 0;
   const ascender = font.ascender * fontScale;
   const descender = Math.abs(font.descender * fontScale);
   const glyphBoxHeight = ascender + descender;

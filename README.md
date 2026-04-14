@@ -21,7 +21,7 @@ Le projet fonctionne sans backend, sans API et sans upload distant.
 - chargement de police locale via input file ou drag and drop
 - saisie texte mono-ligne et multi-lignes
 - réglages `font size`, `letter spacing`, `line height`, `padding`, `alignement`
-- styles `gras` et `italique` appliqués localement
+- styles `gras`, `oblique` et `italique` appliqués localement
 - couleur de remplissage, contour optionnel, épaisseur du contour
 - aperçu SVG en direct
 - export principal en `SVG paths`
@@ -114,14 +114,14 @@ Le projet peut être déployé tel quel sur GitHub Pages ou tout autre hébergem
 - `opentype.js` est adapté ici car il permet de parser des polices locales directement côté navigateur et d’obtenir les paths des glyphes sans serveur.
 - Le projet est livré sans build ni backend pour rester directement hébergeable en statique, y compris sur un disque ou un hébergement qui ne permet pas d’exécuter des binaires Node.
 - Le SVG exporté en paths est calculé à partir de la bounding box réelle des contours puis recentré avec le padding configuré pour éviter les coupes sur les ascenders, descenders et débords latéraux.
-- Le `gras` et l’`italique` sont synthétiques pour rester compatibles avec une seule police importée. L’italique est appliqué directement aux contours exportés, et le gras est rendu par un renforcement SVG propre autour du remplissage.
+- Le `gras`, l’`oblique` et l’`italique` sont synthétiques pour rester compatibles avec une seule police importée. L’inclinaison est appliquée directement aux contours exportés, avec un angle plus léger pour l’oblique.
 - Pour le DXF, les formes SVG sont converties en polylignes ASCII simples. Les courbes sont approximées en segments selon un niveau de précision choisi pour privilégier un export CAD robuste.
 
 ## Hypothèses et limites connues
 
 - Les tabulations sont normalisées en quatre espaces pour garder un comportement stable.
 - Le moteur repose sur les métriques d’`opentype.js` et ne couvre pas la composition OpenType avancée la plus complexe.
-- Le `gras` et l’`italique` ne remplacent pas une vraie variante de police dédiée si vous avez besoin d’une fidélité typographique absolue.
+- Le `gras`, l’`oblique` et l’`italique` ne remplacent pas une vraie variante de police dédiée si vous avez besoin d’une fidélité typographique absolue.
 - Si un caractère n’existe pas dans la police, l’application l’indique en avertissement. Selon la police, un glyphe `.notdef` peut quand même être rendu.
 - L’export `SVG texte` embarque la police en base64 pour rester autonome, mais l’export recommandé reste `SVG paths`.
 - La conversion `SVG -> DXF` cible prioritairement `path`, `rect`, `circle`, `ellipse`, `line`, `polyline`, `polygon` et les transformations simples.

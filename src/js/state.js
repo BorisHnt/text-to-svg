@@ -24,7 +24,7 @@ export function getExampleState() {
       padding: 36,
       align: "center",
       bold: false,
-      italic: false,
+      slantStyle: "normal",
       fill: "#111218",
       stroke: "#2b4d96",
       strokeEnabled: false,

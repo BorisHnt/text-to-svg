@@ -1,4 +1,4 @@
-import { ITALIC_ANGLE_DEGREES } from "./constants.js";
+import { getSlantAngleDegrees } from "./constants.js";
 import { escapeCssString, escapeXml, formatNumber, getFauxBoldWidth } from "./utils.js";
 
 function getStrokeAttributes(settings) {
@@ -119,7 +119,8 @@ export function buildVectorSvgMarkup(layout, settings, options = {}) {
 export function buildTextSvgMarkup(layout, fontAsset, settings) {
   const strokeAttributes = getStrokeAttributes(settings);
   const fontFamily = escapeCssString(fontAsset.familyName || "EmbeddedFont");
-  const textGroupTransform = settings.italic ? ` transform="skewX(${formatNumber(-ITALIC_ANGLE_DEGREES)})"` : "";
+  const slantAngle = getSlantAngleDegrees(settings.slantStyle);
+  const textGroupTransform = slantAngle ? ` transform="skewX(${formatNumber(-slantAngle)})"` : "";
 
   const textMarkup = layout.lines
     .map((line) => {
@@ -139,7 +140,7 @@ export function buildTextSvgMarkup(layout, fontAsset, settings) {
         font-family: "${fontFamily}";
         font-size: ${formatNumber(settings.fontSize)}px;
         letter-spacing: ${formatNumber(settings.letterSpacing)}px;
-        font-style: ${settings.italic ? "italic" : "normal"};
+        font-style: ${settings.slantStyle === "italic" ? "italic" : settings.slantStyle === "oblique" ? "oblique" : "normal"};
         font-weight: ${settings.bold ? "700" : "400"};
         font-synthesis: weight style;
       }

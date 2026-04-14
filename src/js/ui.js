@@ -19,7 +19,6 @@ function getElements() {
     fontMeta: document.getElementById("font-meta"),
     fontName: document.getElementById("font-name"),
     fontSizeInput: document.getElementById("font-size-input"),
-    italicEnabledInput: document.getElementById("italic-enabled-input"),
     lineHeightInput: document.getElementById("line-height-input"),
     missingGlyphs: document.getElementById("missing-glyphs"),
     paddingInput: document.getElementById("padding-input"),
@@ -34,6 +33,7 @@ function getElements() {
     strokeEnabledInput: document.getElementById("stroke-enabled-input"),
     strokeInput: document.getElementById("stroke-input"),
     strokeWidthInput: document.getElementById("stroke-width-input"),
+    slantStyleInput: document.getElementById("slant-style-input"),
     textInput: document.getElementById("text-input"),
     warningBanner: document.getElementById("warning-banner"),
     dropzone: document.getElementById("font-dropzone"),
@@ -52,7 +52,7 @@ function syncControls(elements, state) {
   elements.lineHeightInput.value = state.settings.lineHeight;
   elements.paddingInput.value = state.settings.padding;
   elements.boldEnabledInput.checked = state.settings.bold;
-  elements.italicEnabledInput.checked = state.settings.italic;
+  elements.slantStyleInput.value = state.settings.slantStyle;
   elements.fillInput.value = state.settings.fill;
   elements.strokeInput.value = state.settings.stroke;
   elements.strokeEnabledInput.checked = state.settings.strokeEnabled;
@@ -313,8 +313,8 @@ export function createApp() {
     renderApp(state, elements);
   });
 
-  elements.italicEnabledInput.addEventListener("change", (event) => {
-    state.settings.italic = event.target.checked;
+  elements.slantStyleInput.addEventListener("change", (event) => {
+    state.settings.slantStyle = event.target.value;
     renderApp(state, elements);
   });
 
