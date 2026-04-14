@@ -23,6 +23,8 @@ export function getExampleState() {
       lineHeight: 1.14,
       padding: 36,
       align: "center",
+      bold: false,
+      italic: false,
       fill: "#111218",
       stroke: "#2b4d96",
       strokeEnabled: false,

@@ -1,4 +1,4 @@
-import { TAB_REPLACEMENT } from "./constants.js";
+import { FAUX_BOLD_MIN_WIDTH, FAUX_BOLD_RATIO, TAB_REPLACEMENT } from "./constants.js";
 
 export function pickLocalizedName(record) {
   if (!record) {
@@ -105,4 +105,12 @@ export function downloadTextFile(filename, content, mimeType) {
   setTimeout(() => {
     URL.revokeObjectURL(objectUrl);
   }, 0);
+}
+
+export function getFauxBoldWidth(settings) {
+  if (!settings?.bold) {
+    return 0;
+  }
+
+  return Math.max(FAUX_BOLD_MIN_WIDTH, settings.fontSize * FAUX_BOLD_RATIO);
 }

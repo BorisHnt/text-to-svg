@@ -9,6 +9,7 @@ import { clampNumber, downloadTextFile, formatNumber, slugifyFilename } from "./
 function getElements() {
   return {
     alignButtons: [...document.querySelectorAll("[data-align]")],
+    boldEnabledInput: document.getElementById("bold-enabled-input"),
     exampleButton: document.getElementById("example-button"),
     exportTextButton: document.getElementById("export-text-button"),
     exportVectorButton: document.getElementById("export-vector-button"),
@@ -18,6 +19,7 @@ function getElements() {
     fontMeta: document.getElementById("font-meta"),
     fontName: document.getElementById("font-name"),
     fontSizeInput: document.getElementById("font-size-input"),
+    italicEnabledInput: document.getElementById("italic-enabled-input"),
     lineHeightInput: document.getElementById("line-height-input"),
     missingGlyphs: document.getElementById("missing-glyphs"),
     paddingInput: document.getElementById("padding-input"),
@@ -49,6 +51,8 @@ function syncControls(elements, state) {
   elements.letterSpacingInput.value = state.settings.letterSpacing;
   elements.lineHeightInput.value = state.settings.lineHeight;
   elements.paddingInput.value = state.settings.padding;
+  elements.boldEnabledInput.checked = state.settings.bold;
+  elements.italicEnabledInput.checked = state.settings.italic;
   elements.fillInput.value = state.settings.fill;
   elements.strokeInput.value = state.settings.stroke;
   elements.strokeEnabledInput.checked = state.settings.strokeEnabled;
@@ -301,6 +305,16 @@ export function createApp() {
 
   elements.paddingInput.addEventListener("input", (event) => {
     state.settings.padding = parseNumberInput(event.target.value, 0, 300, DEFAULT_SETTINGS.padding);
+    renderApp(state, elements);
+  });
+
+  elements.boldEnabledInput.addEventListener("change", (event) => {
+    state.settings.bold = event.target.checked;
+    renderApp(state, elements);
+  });
+
+  elements.italicEnabledInput.addEventListener("change", (event) => {
+    state.settings.italic = event.target.checked;
     renderApp(state, elements);
   });
 

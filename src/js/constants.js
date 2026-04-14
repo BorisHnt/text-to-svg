@@ -2,6 +2,9 @@ export const ACCEPTED_EXTENSIONS = [".ttf", ".otf"];
 export const APP_FILE_NAME = "text-to-svg-export";
 export const MAX_MISSING_PREVIEW = 8;
 export const TAB_REPLACEMENT = "    ";
+export const ITALIC_ANGLE_DEGREES = 12;
+export const FAUX_BOLD_RATIO = 0.022;
+export const FAUX_BOLD_MIN_WIDTH = 1.25;
 
 export const DEFAULT_SETTINGS = {
   fontSize: 120,
@@ -9,6 +12,8 @@ export const DEFAULT_SETTINGS = {
   lineHeight: 1.2,
   padding: 28,
   align: "left",
+  bold: false,
+  italic: false,
   fill: "#f6f2e8",
   stroke: "#101114",
   strokeEnabled: false,

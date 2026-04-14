@@ -1,4 +1,5 @@
-import { uniqueStrings, normalizeMultilineText } from "./utils.js";
+import { ITALIC_ANGLE_DEGREES } from "./constants.js";
+import { formatNumber, getFauxBoldWidth, normalizeMultilineText, uniqueStrings } from "./utils.js";
 
 function createEmptyBounds() {
   return {
@@ -42,6 +43,89 @@ function translateBounds(bounds, x, y) {
     x2: bounds.x2 + x,
     y2: bounds.y2 + y,
   };
+}
+
+function skewPoint(x, y, baselineY, italicSlope) {
+  return {
+    x: x + italicSlope * (baselineY - y),
+    y,
+  };
+}
+
+function getTransformedBoundsFromOriginal(bounds, baselineY, italicSlope) {
+  if (!bounds) {
+    return null;
+  }
+
+  const corners = [
+    skewPoint(bounds.x1, bounds.y1, baselineY, italicSlope),
+    skewPoint(bounds.x2, bounds.y1, baselineY, italicSlope),
+    skewPoint(bounds.x2, bounds.y2, baselineY, italicSlope),
+    skewPoint(bounds.x1, bounds.y2, baselineY, italicSlope),
+  ];
+
+  return {
+    x1: Math.min(...corners.map((corner) => corner.x)),
+    y1: Math.min(...corners.map((corner) => corner.y)),
+    x2: Math.max(...corners.map((corner) => corner.x)),
+    y2: Math.max(...corners.map((corner) => corner.y)),
+  };
+}
+
+function transformCommand(command, baselineY, italicSlope) {
+  if (!italicSlope) {
+    return { ...command };
+  }
+
+  switch (command.type) {
+    case "M":
+    case "L": {
+      const point = skewPoint(command.x, command.y, baselineY, italicSlope);
+      return { ...command, x: point.x, y: point.y };
+    }
+    case "Q": {
+      const control = skewPoint(command.x1, command.y1, baselineY, italicSlope);
+      const point = skewPoint(command.x, command.y, baselineY, italicSlope);
+      return { ...command, x1: control.x, y1: control.y, x: point.x, y: point.y };
+    }
+    case "C": {
+      const controlA = skewPoint(command.x1, command.y1, baselineY, italicSlope);
+      const controlB = skewPoint(command.x2, command.y2, baselineY, italicSlope);
+      const point = skewPoint(command.x, command.y, baselineY, italicSlope);
+      return {
+        ...command,
+        x1: controlA.x,
+        y1: controlA.y,
+        x2: controlB.x,
+        y2: controlB.y,
+        x: point.x,
+        y: point.y,
+      };
+    }
+    default:
+      return { ...command };
+  }
+}
+
+function buildPathDataFromCommands(commands) {
+  return commands
+    .map((command) => {
+      switch (command.type) {
+        case "M":
+        case "L":
+          return `${command.type}${formatNumber(command.x)} ${formatNumber(command.y)}`;
+        case "Q":
+          return `Q${formatNumber(command.x1)} ${formatNumber(command.y1)} ${formatNumber(command.x)} ${formatNumber(command.y)}`;
+        case "C":
+          return `C${formatNumber(command.x1)} ${formatNumber(command.y1)} ${formatNumber(command.x2)} ${formatNumber(command.y2)} ${formatNumber(command.x)} ${formatNumber(command.y)}`;
+        case "Z":
+          return "Z";
+        default:
+          return "";
+      }
+    })
+    .filter(Boolean)
+    .join("");
 }
 
 function getLineOffset(contentWidth, lineWidth, align) {
@@ -93,6 +177,7 @@ export function buildTextLayout({ font, text, settings }) {
 
   const lines = normalizedText.split("\n");
   const fontScale = settings.fontSize / font.unitsPerEm;
+  const italicSlope = settings.italic ? Math.tan((ITALIC_ANGLE_DEGREES * Math.PI) / 180) : 0;
   const ascender = font.ascender * fontScale;
   const descender = Math.abs(font.descender * fontScale);
   const glyphBoxHeight = ascender + descender;
@@ -152,9 +237,11 @@ export function buildTextLayout({ font, text, settings }) {
       let pathData = "";
 
       if (hasPath) {
-        pathData = path.toPathData(4);
-        includeBounds(actualBounds, path.getBoundingBox());
-        includeBounds(rawActualBounds, path.getBoundingBox());
+        const transformedCommands = path.commands.map((command) => transformCommand(command, baselineY, italicSlope));
+        pathData = buildPathDataFromCommands(transformedCommands);
+        const transformedBounds = getTransformedBoundsFromOriginal(path.getBoundingBox(), baselineY, italicSlope);
+        includeBounds(actualBounds, transformedBounds);
+        includeBounds(rawActualBounds, transformedBounds);
       }
 
       pathEntries.push({
@@ -185,7 +272,8 @@ export function buildTextLayout({ font, text, settings }) {
   const actualBounds = normalizeBounds(rawActualBounds);
   const hasVisiblePaths = Boolean(actualBounds);
   const strokePadding = settings.strokeEnabled && settings.strokeWidth > 0 ? settings.strokeWidth / 2 : 0;
-  const outerPadding = settings.padding + strokePadding;
+  const fauxBoldPadding = getFauxBoldWidth(settings) / 2;
+  const outerPadding = settings.padding + Math.max(strokePadding, fauxBoldPadding);
   const shiftX = hasVisiblePaths ? outerPadding - actualBounds.x1 : outerPadding;
   const shiftY = hasVisiblePaths ? outerPadding - actualBounds.y1 : outerPadding;
   const width = hasVisiblePaths

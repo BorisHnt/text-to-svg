@@ -1,4 +1,5 @@
-import { escapeCssString, escapeXml, formatNumber } from "./utils.js";
+import { ITALIC_ANGLE_DEGREES } from "./constants.js";
+import { escapeCssString, escapeXml, formatNumber, getFauxBoldWidth } from "./utils.js";
 
 function getStrokeAttributes(settings) {
   if (!settings.strokeEnabled || settings.strokeWidth <= 0) {
@@ -8,6 +9,21 @@ function getStrokeAttributes(settings) {
   return [
     `stroke="${settings.stroke}"`,
     `stroke-width="${formatNumber(settings.strokeWidth)}"`,
+    'stroke-linejoin="round"',
+    'paint-order="stroke fill"',
+  ].join(" ");
+}
+
+function getFauxBoldAttributes(settings) {
+  const fauxBoldWidth = getFauxBoldWidth(settings);
+
+  if (fauxBoldWidth <= 0) {
+    return 'stroke="none"';
+  }
+
+  return [
+    `stroke="${settings.fill}"`,
+    `stroke-width="${formatNumber(fauxBoldWidth)}"`,
     'stroke-linejoin="round"',
     'paint-order="stroke fill"',
   ].join(" ");
@@ -82,10 +98,18 @@ export function buildVectorSvgMarkup(layout, settings, options = {}) {
   const pathMarkup = renderPathMarkup(layout);
   const guideMarkup = includeBounds ? renderBoundsMarkup(layout) : "";
   const strokeAttributes = getStrokeAttributes(settings);
+  const fauxBoldAttributes = getFauxBoldAttributes(settings);
+  const outlineMarkup = settings.strokeEnabled && settings.strokeWidth > 0
+    ? `
+  <g transform="translate(${formatNumber(layout.shiftX)} ${formatNumber(layout.shiftY)})" fill="none" ${strokeAttributes}>
+    ${pathMarkup}
+  </g>`
+    : "";
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${formatNumber(layout.width)} ${formatNumber(layout.height)}" width="${formatNumber(layout.width)}" height="${formatNumber(layout.height)}">
-  <g transform="translate(${formatNumber(layout.shiftX)} ${formatNumber(layout.shiftY)})" fill="${settings.fill}" ${strokeAttributes}>
+  ${outlineMarkup}
+  <g transform="translate(${formatNumber(layout.shiftX)} ${formatNumber(layout.shiftY)})" fill="${settings.fill}" ${fauxBoldAttributes}>
     ${pathMarkup}
   </g>
   ${guideMarkup}
@@ -95,6 +119,7 @@ export function buildVectorSvgMarkup(layout, settings, options = {}) {
 export function buildTextSvgMarkup(layout, fontAsset, settings) {
   const strokeAttributes = getStrokeAttributes(settings);
   const fontFamily = escapeCssString(fontAsset.familyName || "EmbeddedFont");
+  const textGroupTransform = settings.italic ? ` transform="skewX(${formatNumber(-ITALIC_ANGLE_DEGREES)})"` : "";
 
   const textMarkup = layout.lines
     .map((line) => {
@@ -114,11 +139,16 @@ export function buildTextSvgMarkup(layout, fontAsset, settings) {
         font-family: "${fontFamily}";
         font-size: ${formatNumber(settings.fontSize)}px;
         letter-spacing: ${formatNumber(settings.letterSpacing)}px;
+        font-style: ${settings.italic ? "italic" : "normal"};
+        font-weight: ${settings.bold ? "700" : "400"};
+        font-synthesis: weight style;
       }
     </style>
   </defs>
   <g fill="${settings.fill}" ${strokeAttributes}>
-    ${textMarkup}
+    <g${textGroupTransform}>
+      ${textMarkup}
+    </g>
   </g>
 </svg>`;
 }
